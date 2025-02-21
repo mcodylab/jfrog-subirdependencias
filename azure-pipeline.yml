@@ -15,7 +15,7 @@ steps:
   displayName: 'Install JFrog CLI'
 
 - script: |
-    jf config add jfrogmdevops --artifactory-url=$(JFROG_URL) --xray-url=$(JFROG_XRAY_URL) --user=$(ARTIFACTORY_USERNAME) --password=$(XRAY_PASSWORD) --interactive=false
+    jf config add jfrogmdevops --artifactory-url=$(JFROGA_URL) --xray-url=$(JFROGX_URL) --user=$(JFROG_USERNAME) --password=$(VJFROG_APIKEY) --interactive=false
   displayName: 'Configure JFrog CLI'
   
 
