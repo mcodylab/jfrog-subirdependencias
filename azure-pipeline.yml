@@ -1,0 +1,57 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- group: varcody
+
+steps:
+
+- script: |
+    curl -fL https://install-cli.jfrog.io | sh
+    jf --version
+  displayName: 'Install JFrog CLI'
+
+- script: |
+    jf config add jfrogmdevops --artifactory-url=$(JFROG_URL) --xray-url=$(JFROG_XRAY_URL) --user=$(ARTIFACTORY_USERNAME) --password=$(XRAY_PASSWORD) --interactive=false
+  displayName: 'Configure JFrog CLI'
+  
+
+# 🔹 Configurar PyPI en Artifactory
+- script: |
+    jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
+  displayName: 'Configurar PyPI con Artifactory'  
+
+# 🔹 Configurar PyPI en Artifactory para subir dependencias
+- script: |
+    jf pip-config --server-id-deploy=$(JFROG_SERVER) --repo-deploy=$(REPO_PYPI)
+  displayName: 'Configurar PyPI para subir dependencias'
+
+
+- script: |
+    pip install fastapi uvicorn
+    pip freeze > requirements.txt
+    jf pip-config --repo-deploy  $(REPO_PYPI)
+    jf pip install -r requirements.txt --build-name=$(PACKAGE_NAME) --build-number=$(BUILDER_NUMBER)
+    jf rt bp $(PACKAGE_NAME) $(BUILDER_NUMBER)
+  displayName: 'Subir dependencias a Artifactory'
+
+# 🔹 Configurar PyPI en Artifactory
+- script: |
+    jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
+  displayName: 'Configurar PyPI con Artifactory'  
+ 
+
+
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
+    pip install --upgrade meson
+  displayName: 'Actualizar Meson y dependencias de compilación'
+  
+- script: |
+     jf pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
+     pip install -r requirements.txt
+  displayName: 'Descargar dependencias desde Artifactory'
