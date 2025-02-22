@@ -81,27 +81,34 @@ steps:
   displayName: 'Verificar e instalar pycairo si es necesario'
 
 
-# 🔹 Leer `requirements.txt` y subir solo esas dependencias a Artifactory
+# Subir dependencias a Artifactory
 - script: |
-    echo "📌 Descargando dependencias de requirements.txt en formato .whl..."
+    echo "Descargando dependencias de requirements ..."
     
     # Descargar paquetes en formato .whl directamente en el directorio actual
-    pip wheel -r requirements.txt --wheel-dir=.
+    pip wheel -r $(REPO_DEPEND) --wheel-dir=.
     
     # Verificar que se descargaron paquetes
     if [ -z "$(ls -A *.whl 2>/dev/null)" ]; then
-        echo "⚠️ No se descargaron paquetes en formato .whl. Verifica que requirements.txt tenga dependencias válidas."
+        echo " No se descargaron paquetes en formato .whl. Verifica que requirements.txt tenga dependencias válidas."
         exit 1
     fi
     
-    echo "📌 Subiendo dependencias a Artifactory..."
+    echo " Subiendo dependencias a Artifactory..."
     
-    # Subir cada archivo individualmente sin la carpeta intermedia
+    # Subiendo paquetes
     for file in *.whl; do
-        echo "🔹 Subiendo: $file"
-        jf rt u "$file" pypi-local/ --flat=true
+        echo "Subiendo: $file"
+        jf rt u "$file"  $(REPO_PYPI)"/ --flat=true
     done
   displayName: 'Subir dependencias de requirements.txt a Artifactory'
+
+
+
+
+
+
+
 
 
 # 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
