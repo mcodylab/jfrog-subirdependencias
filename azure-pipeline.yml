@@ -53,7 +53,7 @@ steps:
       --repo-resolve=$(REPO_PYPI) \
       --server-id-deploy=$(JFROG_SERVER) \
       --repo-deploy=$(REPO_PYPI) \
-      --interactive=false
+      --global
   displayName: 'Configurar PyPI con Artifactory correctamente'
 
 # 🔹 Instalar dependencias y subirlas a Artifactory
