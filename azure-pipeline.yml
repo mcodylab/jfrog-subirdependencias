@@ -85,24 +85,21 @@ steps:
 - script: |
     echo "📌 Descargando dependencias de requirements.txt en formato .whl..."
     
-    # Crear carpeta temporal para paquetes
-    mkdir -p downloaded_packages
-    
-    # Descargar solo paquetes en formato .whl
-    pip wheel -r requirements.txt --wheel-dir=downloaded_packages
+    # Descargar paquetes en formato .whl directamente en el directorio actual
+    pip wheel -r requirements.txt --wheel-dir=.
     
     # Verificar que se descargaron paquetes
-    if [ -z "$(ls -A downloaded_packages)" ]; then
+    if [ -z "$(ls -A *.whl 2>/dev/null)" ]; then
         echo "⚠️ No se descargaron paquetes en formato .whl. Verifica que requirements.txt tenga dependencias válidas."
         exit 1
     fi
     
     echo "📌 Subiendo dependencias a Artifactory..."
     
-    # Subir cada archivo individualmente
-    for file in downloaded_packages/*; do
+    # Subir cada archivo individualmente sin la carpeta intermedia
+    for file in *.whl; do
         echo "🔹 Subiendo: $file"
-        jf rt u "$file" pypi-local/
+        jf rt u "$file" pypi-local/ --flat=true
     done
   displayName: 'Subir dependencias de requirements.txt a Artifactory'
 
