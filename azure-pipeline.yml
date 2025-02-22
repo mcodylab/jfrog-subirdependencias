@@ -118,6 +118,16 @@ steps:
     
     # Instalar dependencias con autenticación
     pip install --no-cache-dir --index-url=$ARTIFACTORY_URL -r requirements.txt
+  
+    echo "📌 Verificando instalación de todas las dependencias..."
+    while IFS= read -r package; do
+        package_name=$(echo "$package" | cut -d'=' -f1)  # Extraer solo el nombre del paquete
+        if pip list | grep -i "^$package_name "; then
+            echo "✅ $package_name está instalado"
+        else
+            echo "❌ $package_name NO está instalado"
+        fi
+    done < <(grep -Eo '^[^#]+' requirements.txt | awk '{print $1}')
   displayName: 'Descargar e instalar dependencias desde Artifactory con autenticación'
 
 
