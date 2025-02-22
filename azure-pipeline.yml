@@ -80,13 +80,13 @@ steps:
     pip show pycairo >/dev/null 2>&1 || pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
   displayName: 'Verificar e instalar pycairo si es necesario'
 
-# 🔹 Instalar dependencias y subirlas a Artifactory solo si es necesario
+# 🔹 Instalar dependencias y subirlas a Artifactory con descarga forzada
 - script: |
     pip freeze > requirements.txt
 
     if [ -s requirements.txt ]; then
-        echo "Subiendo dependencias a Artifactory..."
-        jf pip install -r requirements.txt --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
+        echo "Forzando descarga y subida a Artifactory..."
+        jf pip install -r requirements.txt --no-cache-dir --force-reinstall --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
         jf rt bp $(PACKAGE_NAME) $(BUILD_NUMBER)
     else
         echo "Error: requirements.txt está vacío. No hay dependencias para subir."
@@ -94,11 +94,11 @@ steps:
     fi
   displayName: 'Subir dependencias a Artifactory'
 
-# 🔹 Descargar dependencias desde Artifactory solo si el archivo existe
+# 🔹 Descargar dependencias desde Artifactory con caché desactivado
 - script: |
     if [ -f requirements.txt ] && [ -s requirements.txt ]; then
-        echo "Descargando dependencias desde Artifactory..."
-        pip install -r requirements.txt
+        echo "Descargando dependencias desde Artifactory sin usar caché..."
+        pip install --no-cache-dir -r requirements.txt
     else
         echo "Error: requirements.txt no encontrado o vacío. No se descargarán dependencias."
         exit 1
