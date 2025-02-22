@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-- group: varcody  # Grupo de variables
+- group: varcody  # Grupo de variables con credenciales de JFrog
 
 steps:
 
@@ -45,20 +45,20 @@ steps:
       --interactive=false
   displayName: 'Configurar JFrog CLI en modo no interactivo'
 
-# 🔹 Configurar PyPI en Artifactory para resolver dependencias
+# 🔹 Configurar PyPI en Artifactory correctamente (resolver y deploy)
 - script: |
-    jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
-  displayName: 'Configurar PyPI con Artifactory'  
-
-# 🔹 Configurar PyPI en Artifactory para subir dependencias
-- script: |
-    jf rt pip-config --server-id-deploy=$(JFROG_SERVER) --repo-deploy=$(REPO_PYPI)
-  displayName: 'Configurar PyPI para subir dependencias'
+    export CI=true
+    jf rt pip-config \
+      --server-id-resolve=$(JFROG_SERVER) \
+      --repo-resolve=$(REPO_PYPI) \
+      --server-id-deploy=$(JFROG_SERVER) \
+      --repo-deploy=$(REPO_PYPI) \
+      --interactive=false
+  displayName: 'Configurar PyPI con Artifactory correctamente'
 
 # 🔹 Instalar dependencias y subirlas a Artifactory
 - script: |
     pip freeze > requirements.txt
-    jf pip-config --repo-deploy $(REPO_PYPI)
     jf pip install -r requirements.txt --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
     jf rt bp $(PACKAGE_NAME) $(BUILD_NUMBER)
   displayName: 'Subir dependencias a Artifactory'
@@ -72,6 +72,5 @@ steps:
 
 # 🔹 Descargar dependencias desde Artifactory
 - script: |
-    jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
     pip install -r requirements.txt
   displayName: 'Descargar dependencias desde Artifactory'
