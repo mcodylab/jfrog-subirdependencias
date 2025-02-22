@@ -56,18 +56,21 @@ steps:
       --global
   displayName: 'Configurar PyPI con Artifactory correctamente'
 
-# 🔹 Actualizar herramientas de compilación
+
+  # 🔹 Verificar y actualizar herramientas de compilación si es necesario
 - script: |
-    sudo apt-get update
-    sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
-    pip install --upgrade meson
-  displayName: 'Actualizar Meson y dependencias de compilación'
+    if ! dpkg -l | grep -E 'python3-pip|python3-setuptools|python3-wheel|ninja-build'; then
+      sudo apt-get update && sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
+    fi
+    pip show meson >/dev/null 2>&1 || pip install --upgrade meson
+  displayName: 'Verificar y actualizar herramientas de compilación si es necesario'
 
 
-# 🔹 Instalar pycairo directamente desde PyPI si es necesario
+
+# 🔹 Verificar e instalar pycairo si es necesario
 - script: |
-    pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
-  displayName: 'Instalar pycairo directamente desde PyPI'
+    pip show pycairo >/dev/null 2>&1 || pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
+  displayName: 'Verificar e instalar pycairo si es necesario'
 
 # 🔹 Instalar dependencias y subirlas a Artifactory
 - script: |
