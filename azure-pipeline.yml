@@ -80,41 +80,35 @@ steps:
     pip show pycairo >/dev/null 2>&1 || pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
   displayName: 'Verificar e instalar pycairo si es necesario'
 
-# 🔹 Generar lista de dependencias
-- script: |
-    pip freeze > requirements.txt
-  displayName: 'Generar requirements.txt'
 
-# 🔹 Verificar qué paquetes faltan en Artifactory
+# 🔹 Leer `requirements.txt` y subir solo esas dependencias a Artifactory
 - script: |
-    echo "📌 Verificando dependencias en Artifactory..."
+    echo "📌 Descargando y subiendo dependencias de requirements.txt a Artifactory..."
     
-    # Obtener lista de paquetes en Artifactory
-    jf rt s "pypi-local/*" | grep '"name"' | awk -F '"' '{print $4}' > artifactory_packages.txt
+    # Crear carpeta temporal para paquetes
+    mkdir -p downloaded_packages
+    
+    # Descargar solo los paquetes listados en requirements.txt
+    pip download -r requirements.txt -d downloaded_packages
 
-    # Obtener lista de paquetes en requirements.txt
-    awk -F '==' '{print $1}' requirements.txt > local_packages.txt
+    # Subir los paquetes descargados a Artifactory
+    jf rt u "downloaded_packages/*.whl" pypi-local/
+  displayName: 'Subir dependencias de requirements.txt a Artifactory'
 
-    # Comparar listas y detectar paquetes faltantes
-    missing_packages=$(comm -23 <(sort local_packages.txt) <(sort artifactory_packages.txt))
-
-    if [ -z "$missing_packages" ]; then
-      echo "✅ Todas las dependencias están en Artifactory."
-    else
-      echo "🚨 Faltan estos paquetes en Artifactory:"
-      echo "$missing_packages"
-
-      # Descargar y subir paquetes faltantes
-      pip download -r requirements.txt -d .
-      jf rt u "*.whl" pypi-local/
-    fi
-  displayName: 'Verificar y subir dependencias faltantes a Artifactory'
-
-# 🔹 Subir todas las dependencias a Artifactory con build info
+# 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
 - script: |
-    jf pip install -r requirements.txt --no-cache-dir --force-reinstall --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
-    jf rt bp $(PACKAGE_NAME) $(BUILD_NUMBER)
-  displayName: 'Subir dependencias a Artifactory'
+    echo "📌 Instalando dependencias desde Artifactory..."
+    pip install --index-url=https://devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simple -r requirements.txt
+  displayName: 'Descargar dependencias desde Artifactory'
+
+# 🔹 Opcional: Verificar que todas las dependencias se instalaron correctamente
+- script: |
+    echo "📌 Verificando instalación de dependencias..."
+    while read package; do
+      pkg_name=$(echo $package | cut -d'=' -f1)
+      pip show $pkg_name > /dev/null || echo "⚠️ Falta instalar: $pkg_name"
+    done < requirements.txt
+  displayName: 'Verificar instalación de dependencias'
 
 # 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
 - script: |
