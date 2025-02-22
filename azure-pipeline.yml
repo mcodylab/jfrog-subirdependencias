@@ -107,7 +107,7 @@ steps:
 # 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
 - script: |
     echo "📌 Instalando dependencias desde Artifactory..."
-    pip install --index-url=https://devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simple -r requirements.txt
+    sudo pip install --no-cache-dir --index-url=https://devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simple -r requirements.txt
   displayName: 'Descargar dependencias desde Artifactory'
 
 # 🔹 Opcional: Verificar que todas las dependencias se instalaron correctamente
