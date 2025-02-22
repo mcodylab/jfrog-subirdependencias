@@ -90,10 +90,17 @@ steps:
     
     # Descargar solo los paquetes listados en requirements.txt
     pip download -r requirements.txt -d downloaded_packages
-
+    
+    # Verificar que se descargaron paquetes
+    if [ -z "$(ls -A downloaded_packages)" ]; then
+        echo "⚠️ No se descargaron paquetes. Verifica que requirements.txt tenga dependencias válidas."
+        exit 1
+    fi
+    
     # Subir los paquetes descargados a Artifactory
-    jf rt u "downloaded_packages/*.whl" pypi-local/
+    jf rt u "downloaded_packages/*.whl" pypi-local/ --flat=true
   displayName: 'Subir dependencias de requirements.txt a Artifactory'
+
 
 # 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
 - script: |
