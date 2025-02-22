@@ -82,27 +82,49 @@ steps:
     jf rt u "argcomplete-3.5.3-py3-none-any.whl" pypi-local/
   displayName: 'Verificar e instalar pycairo si es necesario'
 
-# 🔹 Instalar dependencias y subirlas a Artifactory con descarga forzada
+# 🔹 Generar lista de dependencias
 - script: |
     pip freeze > requirements.txt
+  displayName: 'Generar requirements.txt'
 
-    if [ -s requirements.txt ]; then
-        echo "Forzando descarga y subida a Artifactory..."
-        jf pip install -r requirements.txt --no-cache-dir --force-reinstall --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
-        jf rt bp $(PACKAGE_NAME) $(BUILD_NUMBER)
+# 🔹 Verificar qué paquetes faltan en Artifactory
+- script: |
+    echo "📌 Verificando dependencias en Artifactory..."
+    
+    # Obtener lista de paquetes en Artifactory
+    jf rt s "pypi-local/*" | grep '"name"' | awk -F '"' '{print $4}' > artifactory_packages.txt
+
+    # Obtener lista de paquetes en requirements.txt
+    awk -F '==' '{print $1}' requirements.txt > local_packages.txt
+
+    # Comparar listas y detectar paquetes faltantes
+    missing_packages=$(comm -23 <(sort local_packages.txt) <(sort artifactory_packages.txt))
+
+    if [ -z "$missing_packages" ]; then
+      echo "✅ Todas las dependencias están en Artifactory."
     else
-        echo "Error: requirements.txt está vacío. No hay dependencias para subir."
-        exit 1
+      echo "🚨 Faltan estos paquetes en Artifactory:"
+      echo "$missing_packages"
+
+      # Descargar y subir paquetes faltantes
+      pip download -r requirements.txt -d .
+      jf rt u "*.whl" pypi-local/
     fi
+  displayName: 'Verificar y subir dependencias faltantes a Artifactory'
+
+# 🔹 Subir todas las dependencias a Artifactory con build info
+- script: |
+    jf pip install -r requirements.txt --no-cache-dir --force-reinstall --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
+    jf rt bp $(PACKAGE_NAME) $(BUILD_NUMBER)
   displayName: 'Subir dependencias a Artifactory'
 
-# 🔹 Descargar dependencias desde Artifactory con caché desactivado
+# 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
 - script: |
     if [ -f requirements.txt ] && [ -s requirements.txt ]; then
-        echo "Descargando dependencias desde Artifactory sin usar caché..."
+        echo "📌 Descargando dependencias desde Artifactory..."
         pip install --no-cache-dir -r requirements.txt
     else
-        echo "Error: requirements.txt no encontrado o vacío. No se descargarán dependencias."
+        echo "🚨 Error: requirements.txt no encontrado o vacío."
         exit 1
     fi
   displayName: 'Descargar dependencias desde Artifactory'
