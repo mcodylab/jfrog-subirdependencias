@@ -56,6 +56,11 @@ steps:
       --global
   displayName: 'Configurar PyPI con Artifactory correctamente'
 
+# 🔹 Instalar pycairo directamente desde PyPI si es necesario
+- script: |
+    pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
+  displayName: 'Instalar pycairo directamente desde PyPI'
+
 # 🔹 Instalar dependencias y subirlas a Artifactory
 - script: |
     pip freeze > requirements.txt
