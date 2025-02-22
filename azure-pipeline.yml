@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-- group: varcody
+- group: varcody  # Grupo de variables
 
 steps:
 
@@ -16,9 +16,8 @@ steps:
       curl -fL https://install-cli.jfrog.io | sh
       echo "Instalación completada."
 
-      # Verificar si el binario está en ~/.jfrog
+      # Agregar JFrog CLI al PATH si está en ~/.jfrog/current
       if [ -f "$HOME/.jfrog/current/jf" ]; then
-        echo "JFrog CLI encontrado en ~/.jfrog/current/jf"
         echo 'export PATH=$HOME/.jfrog/current:$PATH' >> ~/.bashrc
         export PATH=$HOME/.jfrog/current:$PATH
       elif [ -f "/usr/local/bin/jf" ]; then
@@ -36,62 +35,43 @@ steps:
     jf --version || { echo "Error: JFrog CLI no está accesible."; exit 1; }
   displayName: 'Verificar e instalar JFrog CLI si es necesario'
 
-
-
-# 🔹 Configurar JFrog CLI solo si no está configurado
+# 🔹 Configurar JFrog CLI en modo no interactivo
 - script: |
-    if ! jf config show jfrogmdevops &> /dev/null; then
-      echo "Configurando JFrog CLI..."
-      jf config add jfrogmdevops \
-        --artifactory-url=$(JFROGA_URL) \
-        --xray-url=$(JFROGX_URL) \
-        --user=$(JFROG_USERNAME) \
-        --password=$(JFROG_APITOKEN) \
-        --interactive=false
-    else
-      echo "JFrog CLI ya está configurado."
-    fi
-  displayName: 'Configurar JFrog CLI si es necesario'
+    export CI=true
+    jf c add jfrogmdevops \
+      --artifactory-url=$(JFROGA_URL) \
+      --user=$(JFROG_USERNAME) \
+      --password=$(JFROG_APITOKEN) \
+      --interactive=false
+  displayName: 'Configurar JFrog CLI en modo no interactivo'
 
-# 🔹 Configurar PyPI en Artifactory solo si no está configurado
+# 🔹 Configurar PyPI en Artifactory para resolver dependencias
 - script: |
-    PIP_CONFIGURED=$(jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI) 2>&1 || echo "not_configured")
-    if [[ "$PIP_CONFIGURED" == *"not_configured"* ]]; then
-      echo "Configurando PyPI en Artifactory..."
-      jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
-    else
-      echo "PyPI ya está configurado en Artifactory."
-    fi
-  displayName: 'Configurar PyPI con Artifactory si es necesario'
+    jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
+  displayName: 'Configurar PyPI con Artifactory'  
 
-# 🔹 Instalar dependencias solo si no están instaladas
+# 🔹 Configurar PyPI en Artifactory para subir dependencias
+- script: |
+    jf rt pip-config --server-id-deploy=$(JFROG_SERVER) --repo-deploy=$(REPO_PYPI)
+  displayName: 'Configurar PyPI para subir dependencias'
+
+# 🔹 Instalar dependencias y subirlas a Artifactory
 - script: |
     pip freeze > requirements.txt
-  displayName: 'Instalar dependencias si es necesario'
-
-# 🔹 Subir dependencias a Artifactory
-- script: |
-    jf rt upload "requirements.txt" $(REPO_PYPI) --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
+    jf pip-config --repo-deploy $(REPO_PYPI)
+    jf pip install -r requirements.txt --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
+    jf rt bp $(PACKAGE_NAME) $(BUILD_NUMBER)
   displayName: 'Subir dependencias a Artifactory'
 
-# 🔹 Actualizar Meson y herramientas de compilación solo si es necesario
+# 🔹 Actualizar herramientas de compilación
 - script: |
-    if ! command -v meson &> /dev/null; then
-      echo "Instalando herramientas de compilación..."
-      sudo apt-get update && sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
-      pip install --upgrade meson
-    else
-      echo "Las herramientas de compilación ya están instaladas."
-    fi
-  displayName: 'Actualizar herramientas de compilación si es necesario'
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
+    pip install --upgrade meson
+  displayName: 'Actualizar Meson y dependencias de compilación'
 
-# 🔹 Descargar dependencias desde Artifactory solo si no están instaladas
+# 🔹 Descargar dependencias desde Artifactory
 - script: |
-    MISSING_DEPENDENCIES=$(pip check 2>&1 || echo "missing")
-    if [[ "$MISSING_DEPENDENCIES" == *"missing"* ]]; then
-      echo "Descargando dependencias desde Artifactory..."
-      pip install -r requirements.txt
-    else
-      echo "Todas las dependencias ya están instaladas."
-    fi
-  displayName: 'Descargar dependencias si es necesario'
+    jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
+    pip install -r requirements.txt
+  displayName: 'Descargar dependencias desde Artifactory'
