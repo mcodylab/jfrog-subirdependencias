@@ -78,6 +78,8 @@ steps:
 - script: |
     export PATH=$PATH:/usr/bin
     pip show pycairo >/dev/null 2>&1 || pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
+    pip download argcomplete==3.5.3 -d .
+    jf rt u "argcomplete-3.5.3-py3-none-any.whl" pypi-local/
   displayName: 'Verificar e instalar pycairo si es necesario'
 
 # 🔹 Instalar dependencias y subirlas a Artifactory con descarga forzada
