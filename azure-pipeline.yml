@@ -14,14 +14,29 @@ steps:
     if ! command -v jf &> /dev/null; then
       echo "JFrog CLI no encontrado, instalando..."
       curl -fL https://install-cli.jfrog.io | sh
-      export PATH=$PATH:$HOME/.jfrog/current/bin
-      echo 'export PATH=$PATH:$HOME/.jfrog/current/bin' >> ~/.bashrc
+      echo "Instalación completada."
+
+      # Verificar dónde se instaló JFrog CLI
+      JFROG_BIN=$(find $HOME -name jfrog -type f | head -n 1)
+      
+      if [ -z "$JFROG_BIN" ]; then
+        echo "Error: No se encontró el binario de JFrog CLI."
+        exit 1
+      fi
+
+      echo "JFrog CLI encontrado en: $JFROG_BIN"
+      
+      # Exportar la ruta del binario
+      echo "export PATH=$(dirname $JFROG_BIN):\$PATH" >> ~/.bashrc
+      export PATH=$(dirname $JFROG_BIN):$PATH
     else
       echo "JFrog CLI ya está instalado."
     fi
-    source ~/.bashrc
-    jf --version
+
+    # Verificar instalación final
+    jf --version || { echo "Error: JFrog CLI no está accesible."; exit 1; }
   displayName: 'Verificar e instalar JFrog CLI si es necesario'
+
 
 # 🔹 Configurar JFrog CLI solo si no está configurado
 - script: |
