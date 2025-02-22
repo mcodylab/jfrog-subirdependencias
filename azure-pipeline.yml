@@ -14,9 +14,12 @@ steps:
     if ! command -v jf &> /dev/null; then
       echo "JFrog CLI no encontrado, instalando..."
       curl -fL https://install-cli.jfrog.io | sh
+      export PATH=$PATH:$HOME/.jfrog/current/bin
+      echo 'export PATH=$PATH:$HOME/.jfrog/current/bin' >> ~/.bashrc
     else
       echo "JFrog CLI ya está instalado."
     fi
+    source ~/.bashrc
     jf --version
   displayName: 'Verificar e instalar JFrog CLI si es necesario'
 
