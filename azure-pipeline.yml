@@ -106,9 +106,15 @@ steps:
 
 # 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
 - script: |
-    echo "📌 Instalando dependencias desde Artifactory..."
-    sudo pip install --no-cache-dir --index-url=https://devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simple -r requirements.txt
-  displayName: 'Descargar dependencias desde Artifactory'
+    echo "📌 Instalando dependencias desde Artifactory sin usar keyring..."
+    
+    # Desactivar keyring para evitar advertencias
+    export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+    
+    # Instalar dependencias desde Artifactory
+    pip install --no-cache-dir --index-url=https://devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simple -r requirements.txt
+  displayName: 'Descargar e instalar dependencias desde Artifactory'
+
 
 # 🔹 Opcional: Verificar que todas las dependencias se instalaron correctamente
 - script: |
