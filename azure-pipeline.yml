@@ -56,6 +56,14 @@ steps:
       --global
   displayName: 'Configurar PyPI con Artifactory correctamente'
 
+# 🔹 Actualizar herramientas de compilación
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
+    pip install --upgrade meson
+  displayName: 'Actualizar Meson y dependencias de compilación'
+
+
 # 🔹 Instalar pycairo directamente desde PyPI si es necesario
 - script: |
     pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
@@ -68,12 +76,6 @@ steps:
     jf rt bp $(PACKAGE_NAME) $(BUILD_NUMBER)
   displayName: 'Subir dependencias a Artifactory'
 
-# 🔹 Actualizar herramientas de compilación
-- script: |
-    sudo apt-get update
-    sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
-    pip install --upgrade meson
-  displayName: 'Actualizar Meson y dependencias de compilación'
 
 # 🔹 Descargar dependencias desde Artifactory
 - script: |
