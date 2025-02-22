@@ -56,8 +56,7 @@ steps:
       --global
   displayName: 'Configurar PyPI con Artifactory correctamente'
 
-
-  # 🔹 Verificar y actualizar herramientas de compilación si es necesario
+# 🔹 Verificar y actualizar herramientas de compilación si es necesario
 - script: |
     if ! dpkg -l | grep -E 'python3-pip|python3-setuptools|python3-wheel|ninja-build'; then
       sudo apt-get update && sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
@@ -65,10 +64,19 @@ steps:
     pip show meson >/dev/null 2>&1 || pip install --upgrade meson
   displayName: 'Verificar y actualizar herramientas de compilación si es necesario'
 
-
+# 🔹 Verificar que ninja está instalado y en el PATH
+- script: |
+    if ! command -v ninja &>/dev/null; then
+      echo "Ninja no encontrado. Instalando..."
+      sudo apt-get update && sudo apt-get install -y ninja-build
+    fi
+    echo "Verificando versión de Ninja:"
+    ninja --version
+  displayName: 'Verificar e instalar Ninja si es necesario'
 
 # 🔹 Verificar e instalar pycairo si es necesario
 - script: |
+    export PATH=$PATH:/usr/bin
     pip show pycairo >/dev/null 2>&1 || pip install --no-cache-dir --index-url=https://pypi.org/simple pycairo
   displayName: 'Verificar e instalar pycairo si es necesario'
 
