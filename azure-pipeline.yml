@@ -40,9 +40,9 @@ steps:
 
 # 🔹 Configurar JFrog CLI solo si no está configurado
 - script: |
-    if ! jfrog config show jfrogmdevops &> /dev/null; then
+    if ! jf config show jfrogmdevops &> /dev/null; then
       echo "Configurando JFrog CLI..."
-      jfrog config add jfrogmdevops \
+      jf config add jfrogmdevops \
         --artifactory-url=$(JFROGA_URL) \
         --xray-url=$(JFROGX_URL) \
         --user=$(JFROG_USERNAME) \
@@ -55,10 +55,10 @@ steps:
 
 # 🔹 Configurar PyPI en Artifactory solo si no está configurado
 - script: |
-    PIP_CONFIGURED=$(jfrog rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI) 2>&1 || echo "not_configured")
+    PIP_CONFIGURED=$(jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI) 2>&1 || echo "not_configured")
     if [[ "$PIP_CONFIGURED" == *"not_configured"* ]]; then
       echo "Configurando PyPI en Artifactory..."
-      jfrog rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
+      jf rt pip-config --server-id-resolve=$(JFROG_SERVER) --repo-resolve=$(REPO_PYPI)
     else
       echo "PyPI ya está configurado en Artifactory."
     fi
@@ -71,7 +71,7 @@ steps:
 
 # 🔹 Subir dependencias a Artifactory
 - script: |
-    jfrog rt upload "requirements.txt" $(REPO_PYPI) --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
+    jf rt upload "requirements.txt" $(REPO_PYPI) --build-name=$(PACKAGE_NAME) --build-number=$(BUILD_NUMBER)
   displayName: 'Subir dependencias a Artifactory'
 
 # 🔹 Actualizar Meson y herramientas de compilación solo si es necesario
