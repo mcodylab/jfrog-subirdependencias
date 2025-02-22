@@ -106,14 +106,19 @@ steps:
 
 # 🔹 Descargar dependencias desde Artifactory asegurando versión correcta
 - script: |
-    echo "📌 Instalando dependencias desde Artifactory sin usar keyring..."
+    echo "📌 Instalando dependencias desde Artifactory con autenticación..."
     
-    # Desactivar keyring para evitar advertencias
+    # Definir credenciales de Artifactory
+    ARTIFACTORY_USER="milton"
+    ARTIFACTORY_PASSWORD="bc1234@@t1234A"
+    ARTIFACTORY_URL="https://$ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD@devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simple"
+    
+    # Desactivar keyring
     export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
     
-    # Instalar dependencias desde Artifactory
-    pip install --no-cache-dir --index-url=https://devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simple -r requirements.txt
-  displayName: 'Descargar e instalar dependencias desde Artifactory'
+    # Instalar dependencias con autenticación
+    pip install --no-cache-dir --index-url=$ARTIFACTORY_URL -r requirements.txt
+  displayName: 'Descargar e instalar dependencias desde Artifactory con autenticación'
 
 
 # 🔹 Opcional: Verificar que todas las dependencias se instalaron correctamente
