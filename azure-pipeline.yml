@@ -123,7 +123,8 @@ steps:
 
     
     # Instalar dependencias con autenticación
-    pip install --no-cache-dir --index-url=$(ARTIFACTORY_URL) -r requirements.txt
+    export PIP_INDEX_URL=$(ARTIFACTORY_URL)
+    pip install --no-cache-dir  -r requirements.txt
   
     echo "📌 Verificando instalación de todas las dependencias..."
     while IFS= read -r package; do
