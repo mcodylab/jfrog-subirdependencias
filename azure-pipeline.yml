@@ -99,7 +99,7 @@ steps:
     # Subiendo paquetes
     for file in *.whl; do
         echo "Subiendo: $file"
-        jf rt u "$file"  $(REPO_PYPI)"/ --flat=true
+        jf rt u "$file"  $(REPO_PYPI)/ --flat=true
     done
   displayName: 'Subir dependencias de requirements.txt a Artifactory'
 
