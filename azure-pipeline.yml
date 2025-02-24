@@ -106,7 +106,17 @@ steps:
 
 
 
+- script: |
+    echo "📌 Configurando autenticación en pip.conf..."
+    
+    mkdir -p ~/.pip
+    echo "[global]" > ~/.pip/pip.conf
+    echo "index-url = $(ARTIFACTORY_URL)" >> ~/.pip/pip.conf
 
+
+    echo "✅ Configuración de pip creada en ~/.pip/pip.conf"
+
+  displayName: 'Configurar pip para Artifactory'
 
 
 
@@ -122,12 +132,7 @@ steps:
     
 
     
-    # Instalar dependencias con autenticación
-     mkdir -p ~/.pip
-    cat <<EOF > ~/.pip/pip.conf
-    [global]
-    index-url = $(ARTIFACTORY_URL)
-    EOF
+
 
     pip install --no-cache-dir  -r requirements.txt
   
