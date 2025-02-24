@@ -123,7 +123,12 @@ steps:
 
     
     # Instalar dependencias con autenticación
-    export PIP_INDEX_URL=$(ARTIFACTORY_URL)
+     mkdir -p ~/.pip
+    cat <<EOF > ~/.pip/pip.conf
+    [global]
+    index-url = $(ARTIFACTORY_URL)
+    EOF
+
     pip install --no-cache-dir  -r requirements.txt
   
     echo "📌 Verificando instalación de todas las dependencias..."
