@@ -118,7 +118,7 @@ steps:
     
     # Desactivar keyring
     export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
-    echo "📌 Configurando autenticación en JFrog Artifactory..."
+    echo "📌 Configurando autenticación en JFrog Artifactory... EXPORT"
     
 
     
