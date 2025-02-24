@@ -115,9 +115,6 @@ steps:
 - script: |
     echo "📌 Instalando dependencias desde Artifactory con autenticación..."
     
-    # Definir credenciales de Artifactory
- 
-    ARTIFACTORY_URL="https://devopsm.jfrog.io/artifactory/api/pypi/pypi-local/simplee"
     
     # Desactivar keyring
     export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
