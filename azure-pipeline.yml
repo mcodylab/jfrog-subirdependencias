@@ -86,7 +86,7 @@ steps:
     echo "Descargando dependencias de requirements ..."
     
     # Descargar paquetes en formato .whl directamente en el directorio actual
-    pip --no-cache-dir --index-url=https://pypi.org/simple  wheel -r $(REPO_DEPEND) --wheel-dir=.
+    pip   wheel -r $(REPO_DEPEND) --wheel-dir=.
     
     # Verificar que se descargaron paquetes
     if [ -z "$(ls -A *.whl 2>/dev/null)" ]; then
