@@ -56,13 +56,6 @@ steps:
       --global
   displayName: 'Configurar PyPI con Artifactory correctamente'
 
-# 🔹 Verificar y actualizar herramientas de compilación si es necesario
-- script: |
-    if ! dpkg -l | grep -E 'python3-pip|python3-setuptools|python3-wheel|ninja-build'; then
-      sudo apt-get update && sudo apt-get install -y python3-pip python3-setuptools python3-wheel ninja-build
-    fi
-    pip show meson >/dev/null 2>&1 || pip install --upgrade meson
-  displayName: 'Verificar y actualizar herramientas de compilación si es necesario'
 
 # 🔹 Verificar que ninja está instalado y en el PATH
 - script: |
