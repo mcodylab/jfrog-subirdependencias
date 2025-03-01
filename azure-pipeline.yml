@@ -136,7 +136,7 @@ steps:
     
 
 
-    pip install --no-cache-dir  -r requirements.txt
+    pip install --no-cache-dir --verbose --index-url  $(ARTIFACTORY_URL)   -r requirements.txt
   
     echo "📌 Verificando instalación de todas las dependencias..."
     while IFS= read -r package; do
